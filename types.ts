@@ -27,12 +27,20 @@ export interface TrainingMetrics {
 export interface DocumentChunk {
   id: string;
   source: string;
+  sourceFile?: string;
+  pageNumber?: number;
   content: string; // O texto completo (Qualis A1 rigor)
   tokens: number;
+  tokenCount?: number;
   dueDate?: string;
   entityType?: string; // Ex: ARTIGO, CAPITULO, INCISO, TEXTO
   entityLabel?: string; // Ex: Art. 1º, Cap. II, Introdução
   keywords?: string[]; // Entidades identificadas por IA
+  aiProvider?: string; // 'gemini' | 'ollama' | 'xiaozhi'
+  uploadTime?: string;
+  processingTime?: number;
+  hash?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface EmbeddingVector {
@@ -45,6 +53,15 @@ export interface EmbeddingVector {
   entityLabel?: string;
   keywords?: string[];
   modelUsed?: string;
+  dimensions?: number;
+  refined?: number[]; // Vetor refinado pós-CNN
+  trainLoss?: number;
+  valLoss?: number;
+  chunkIndex?: number;
+  metadata?: {
+    provider?: string;
+    model_version?: string;
+  };
 }
 
 export interface ClusterPoint {
