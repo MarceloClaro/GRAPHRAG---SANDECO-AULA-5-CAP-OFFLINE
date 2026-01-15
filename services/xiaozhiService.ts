@@ -56,7 +56,7 @@ export const defaultXiaozhiConfig: Xiaozhi = {
  * Análise profunda com DeepSeek-R1 via xiaozhi.me
  */
 export const analyzeDocumentXiaozhi = async (
-  content: string,
+  docContent: string,
   config: Xiaozhi,
   customModel?: string
 ): Promise<{
@@ -75,7 +75,7 @@ export const analyzeDocumentXiaozhi = async (
     const prompt = `Você é especialista em análise de documentos técnicos e legais.
 
 ANALISAR:
-${content}
+${docContent}
 
 RETORNE JSON COM:
 {

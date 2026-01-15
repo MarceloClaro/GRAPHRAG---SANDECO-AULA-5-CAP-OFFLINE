@@ -433,7 +433,7 @@ export const testAdvancedModels = async (
       });
       result.xiaozhi.available = response.ok;
     } catch (error: any) {
-      result.xiaozhi.error = error.message;
+      console.warn('xiaozhi.me erro:', error.message);
     }
   }
 
