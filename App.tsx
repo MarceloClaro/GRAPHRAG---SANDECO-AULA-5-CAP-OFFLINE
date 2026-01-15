@@ -325,6 +325,47 @@ const App: React.FC = () => {
     downloadCSV(edgesExport, 'etapa6_grafo_arestas.csv');
   };
 
+  // CSV unificado com colunas incrementais de todas as etapas
+  const exportUnifiedCSV = () => {
+    if (chunks.length === 0) {
+      alert('Nenhum dado para exportar. Faça o upload/processamento primeiro.');
+      return;
+    }
+
+    const rows = chunks.map(chunk => {
+      const embedding = embeddings.find(e => e.id === chunk.id);
+      const cluster = clusters.find(c => c.id === chunk.id);
+      const node = graphData?.nodes.find(n => n.id === chunk.id);
+      const degree = graphData ? graphData.links.filter(l => l.source === chunk.id || l.target === chunk.id).length : undefined;
+      const provider = appSettings.aiProvider === 'ollama' ? `Ollama (${appSettings.ollamaModel})` : 'Gemini';
+
+      return {
+        Chunk_ID: chunk.id,
+        Arquivo: chunk.source,
+        Tipo_IA: chunk.entityType || '',
+        Rotulo: chunk.entityLabel || '',
+        Palavras_Chave: chunk.keywords?.join('; ') || '',
+        Conteudo_Preview: (chunk.content || '').replace(/\s+/g, ' ').slice(0, 140),
+        Tokens: chunk.tokens,
+        Prazo: chunk.dueDate || '',
+        Provedor_IA: provider,
+        Modelo_Embedding: embedding?.modelUsed || '',
+        Dim_Embedding: embedding?.vector?.length || '',
+        Vetor_Sample: embedding ? `[${embedding.vector.slice(0, 3).map(v => v.toFixed(4)).join('; ')}...]` : '',
+        Cluster_ID: cluster?.clusterId ?? '',
+        Cluster_X: cluster?.x ?? '',
+        Cluster_Y: cluster?.y ?? '',
+        Grafo_Grupo: node?.group ?? '',
+        Grafo_Centralidade: node?.centrality ?? '',
+        Grau_Arestas: degree ?? '',
+        Palavras_Grafo: node?.keywords?.join('; ') || '',
+        Etapa_Atual: stage,
+      };
+    });
+
+    downloadCSV(rows, 'pipeline_unificado.csv');
+  };
+
   const openModal = (title: string, content: string) => {
     setModalContent({ title, text: content });
     setModalOpen(true);
@@ -390,6 +431,16 @@ const App: React.FC = () => {
               {stage === PipelineStage.GRAPH && "4. Grafo de Conhecimento"}
             </h2>
             <div className="flex items-center space-x-3">
+              {chunks.length > 0 && (
+                <button
+                  onClick={exportUnifiedCSV}
+                  disabled={isProcessing}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg shadow-sm transition-all text-sm font-medium flex items-center"
+                  title="Exportar CSV unificado com dados incrementais"
+                >
+                  Exportar CSV Unificado
+                </button>
+              )}
               
               {stage === PipelineStage.UPLOAD && chunks.length > 0 && (
                 <>
