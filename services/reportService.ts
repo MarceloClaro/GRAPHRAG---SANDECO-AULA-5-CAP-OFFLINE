@@ -1,4 +1,28 @@
 import { DocumentChunk, EmbeddingVector, GraphData, EmbeddingModelType } from '../types';
+import { downloadCSV } from './exportService';
+
+export interface UnifiedRow {
+    Chunk_ID: string;
+    Arquivo: string;
+    Tipo_IA: string;
+    Rotulo: string;
+    Palavras_Chave: string;
+    Conteudo_Preview: string;
+    Tokens: number;
+    Prazo: string;
+    Provedor_IA: string;
+    Modelo_Embedding: string;
+    Dim_Embedding: number | string;
+    Vetor_Sample: string;
+    Cluster_ID: number | string;
+    Cluster_X: number | string;
+    Cluster_Y: number | string;
+    Grafo_Grupo: number | string;
+    Grafo_Centralidade: number | string;
+    Grau_Arestas: number | string;
+    Palavras_Grafo: string;
+    Etapa_Atual: string;
+}
 
 export const generateTechnicalReport = (
     chunks: DocumentChunk[], 
@@ -156,4 +180,62 @@ O grafo gerado está pronto para exportação e integração em sistemas de infe
 ---
 *Gerado via GraphRAG Pipeline Visualizer - Engineering Department*
 `;
+};
+
+/**
+ * Exporta relatório em PDF (HTML simples convertido em blob) e XLSX (planilha HTML) para auditoria QUALIS A1.
+ */
+export const downloadReportAsPDF = (reportText: string, rows: UnifiedRow[]) => {
+    const table = buildAuditTable(rows);
+    const html = `
+    <html>
+        <head>
+            <meta charset="UTF-8" />
+            <style>
+                body { font-family: 'Inter', Arial, sans-serif; padding: 24px; color: #0f172a; }
+                h1,h2,h3 { color: #111827; }
+                pre { white-space: pre-wrap; background: #f1f5f9; padding: 16px; border-radius: 8px; }
+                table { border-collapse: collapse; width: 100%; margin-top: 24px; font-size: 12px; }
+                th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+                th { background: #e2e8f0; }
+            </style>
+        </head>
+        <body>
+            <h1>Relatório Técnico GraphRAG</h1>
+            <pre>${reportText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+            <h2>Planilha de Auditoria (Resumo Consolidado)</h2>
+            ${table}
+        </body>
+    </html>`;
+
+    const blob = new Blob([html], { type: 'application/pdf;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'relatorio_qualis.pdf';
+    link.click();
+    URL.revokeObjectURL(url);
+};
+
+export const downloadReportAsXLSX = (rows: UnifiedRow[]) => {
+    const table = buildAuditTable(rows);
+    const html = `
+        <html><head><meta charset="UTF-8"></head><body>${table}</body></html>
+    `;
+    const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'auditoria_graphRAG.xlsx';
+    link.click();
+    URL.revokeObjectURL(url);
+};
+
+// Gera tabela HTML para PDF/XLSX
+const buildAuditTable = (rows: UnifiedRow[]): string => {
+    if (!rows || rows.length === 0) return '<p>Sem dados para auditoria.</p>';
+    const headers = Object.keys(rows[0]);
+    const thead = `<tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+    const tbody = rows.map(r => `<tr>${headers.map(h => `<td>${(r as any)[h] ?? ''}</td>`).join('')}</tr>`).join('');
+    return `<table>${thead}${tbody}</table>`;
 };

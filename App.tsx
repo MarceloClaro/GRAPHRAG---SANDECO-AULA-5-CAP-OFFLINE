@@ -12,7 +12,7 @@ import { enhanceChunksWithOllama, generateEmbeddingsWithOllama } from './service
 import { trainCNNWithTripletLoss } from './services/cnnRefinementService';
 import { extractTextFromPDF } from './services/pdfService';
 import { downloadCSV } from './services/exportService';
-import { generateTechnicalReport } from './services/reportService';
+import { generateTechnicalReport, downloadReportAsPDF, downloadReportAsXLSX, UnifiedRow } from './services/reportService';
 import PipelineProgress from './components/PipelineProgress';
 import FullContentModal from './components/FullContentModal';
 import ForceGraph, { ForceGraphRef } from './components/charts/ForceGraph';
@@ -327,12 +327,29 @@ const App: React.FC = () => {
 
   // CSV unificado com colunas incrementais de todas as etapas
   const exportUnifiedCSV = () => {
-    if (chunks.length === 0) {
+    const rows = buildUnifiedRows();
+    if (!rows.length) {
       alert('Nenhum dado para exportar. Faça o upload/processamento primeiro.');
       return;
     }
+    downloadCSV(rows, 'pipeline_unificado.csv');
+  };
 
-    const rows = chunks.map(chunk => {
+  // Exporta relatório QUALIS A1 em PDF (HTML) e XLSX (planilha)
+  const exportReportAudit = (format: 'pdf' | 'xlsx') => {
+    const rows = buildUnifiedRows();
+    if (!rows.length) {
+      alert('Nenhum dado para exportar. Faça o upload/processamento primeiro.');
+      return;
+    }
+    const report = generateTechnicalReport(chunks, embeddings, graphData, appSettings.aiProvider === 'ollama' ? 'sentence-bert' : 'gemini-004');
+    if (format === 'pdf') downloadReportAsPDF(report, rows);
+    if (format === 'xlsx') downloadReportAsXLSX(rows);
+  };
+
+  // Constrói linhas unificadas reutilizáveis
+  const buildUnifiedRows = (): UnifiedRow[] => {
+    return chunks.map(chunk => {
       const embedding = embeddings.find(e => e.id === chunk.id);
       const cluster = clusters.find(c => c.id === chunk.id);
       const node = graphData?.nodes.find(n => n.id === chunk.id);
@@ -362,8 +379,6 @@ const App: React.FC = () => {
         Etapa_Atual: stage,
       };
     });
-
-    downloadCSV(rows, 'pipeline_unificado.csv');
   };
 
   const openModal = (title: string, content: string) => {
@@ -440,6 +455,27 @@ const App: React.FC = () => {
                 >
                   Exportar CSV Unificado
                 </button>
+              )}
+
+              {chunks.length > 0 && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => exportReportAudit('pdf')}
+                    disabled={isProcessing}
+                    className="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-lg shadow-sm transition-all text-sm font-medium"
+                    title="Baixar relatório completo em PDF com planilha de auditoria"
+                  >
+                    Relatório PDF
+                  </button>
+                  <button
+                    onClick={() => exportReportAudit('xlsx')}
+                    disabled={isProcessing}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2 rounded-lg shadow-sm transition-all text-sm font-medium"
+                    title="Baixar planilha XLSX com dados consolidados"
+                  >
+                    Auditoria XLSX
+                  </button>
+                </div>
               )}
               
               {stage === PipelineStage.UPLOAD && chunks.length > 0 && (
