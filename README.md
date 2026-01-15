@@ -26,6 +26,7 @@ Sistema **GraphRAG (Graph-based Retrieval-Augmented Generation)** de nível prof
 ### 🆕 Recursos Principais
 
 #### 1. **Configuração Visual de IA**
+
 - ⚙️ Interface de configuração integrada
 - 🌐 **Google Gemini**: Alta qualidade, API cloud
 - 🦙 **Ollama**: Gratuito, local, CPU-friendly
@@ -33,6 +34,7 @@ Sistema **GraphRAG (Graph-based Retrieval-Augmented Generation)** de nível prof
 - 💾 Configurações persistentes (localStorage)
 
 #### 2. **Sistema de Auditoria Profissional**
+
 - 📊 Rastreamento completo de operações
 - ⏱️ Métricas de performance (duração, throughput)
 - 📈 Estatísticas agregadas por operação
@@ -40,6 +42,7 @@ Sistema **GraphRAG (Graph-based Retrieval-Augmented Generation)** de nível prof
 - 🔍 Debugging facilitado
 
 #### 3. **Validação Rigorosa de Dados**
+
 - ✔️ Validação de chunks (estrutura, conteúdo)
 - ✔️ Validação de embeddings (dimensões, valores)
 - ✔️ Validação de grafos (integridade topológica)
@@ -47,6 +50,7 @@ Sistema **GraphRAG (Graph-based Retrieval-Augmented Generation)** de nível prof
 - ✔️ Relatórios de erro detalhados
 
 #### 4. **Otimizações de Performance**
+
 - 🚀 **Cache LRU**: 70% economia em reprocessamento
 - ⚡ **Batch Processing**: 3-10 itens por lote
 - 🔁 **Retry Inteligente**: Backoff exponencial (2s → 4s → 8s)

@@ -576,7 +576,9 @@ const App: React.FC = () => {
                     <div>
                         <label className="text-xs text-slate-400 block mb-1">Margin</label>
                         <input 
-                            type="number" step="0.1" 
+                          type="number" step="0.1" 
+                          aria-label="CNN margin"
+                          title="CNN margin"
                             value={cnnParams.margin}
                             onChange={(e) => setCnnParams({...cnnParams, margin: parseFloat(e.target.value)})}
                             className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:ring-1 focus:ring-purple-500"
@@ -585,7 +587,9 @@ const App: React.FC = () => {
                     <div>
                         <label className="text-xs text-slate-400 block mb-1">Learning Rate</label>
                         <input 
-                            type="number" step="0.001" 
+                          type="number" step="0.001" 
+                          aria-label="CNN learning rate"
+                          title="CNN learning rate"
                             value={cnnParams.learningRate}
                             onChange={(e) => setCnnParams({...cnnParams, learningRate: parseFloat(e.target.value)})}
                             className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:ring-1 focus:ring-purple-500"
@@ -594,7 +598,9 @@ const App: React.FC = () => {
                     <div>
                         <label className="text-xs text-slate-400 block mb-1">Epochs</label>
                         <input 
-                            type="number" 
+                          type="number" 
+                          aria-label="CNN epochs"
+                          title="CNN epochs"
                             value={cnnParams.epochs}
                             onChange={(e) => setCnnParams({...cnnParams, epochs: parseInt(e.target.value)})}
                             className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:ring-1 focus:ring-purple-500"
@@ -603,6 +609,8 @@ const App: React.FC = () => {
                     <div>
                         <label className="text-xs text-slate-400 block mb-1">Mining Strategy</label>
                         <select 
+                          aria-label="CNN mining strategy"
+                          title="CNN mining strategy"
                             value={cnnParams.miningStrategy}
                             onChange={(e) => setCnnParams({...cnnParams, miningStrategy: e.target.value as any})}
                             className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white focus:ring-1 focus:ring-purple-500"

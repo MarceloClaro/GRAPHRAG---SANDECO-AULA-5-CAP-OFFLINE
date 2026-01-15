@@ -61,10 +61,12 @@ async function retryOperation<T>(operation: () => Promise<T>, operationName: str
       
       const isRateLimit = error.message?.includes('429') || error.status === 429 || error.code === 429;
       const isServerOverload = error.message?.includes('503') || error.status === 503;
+      const isInternal = error.message?.includes('500') || error.status === 500 || error.code === 500;
 
-      if (isRateLimit || isServerOverload) {
+      if (isRateLimit || isServerOverload || isInternal) {
         const waitTime = initialDelay * Math.pow(2, i);
-        auditLogger.logWarning(operationName, `API throttled (Attempt ${i + 1}/${maxRetries})`, { waitTime });
+        const reason = isRateLimit ? 'RateLimit' : isServerOverload ? 'ServiceUnavailable' : 'InternalError';
+        auditLogger.logWarning(operationName, `${reason} (Attempt ${i + 1}/${maxRetries})`, { waitTime, status: error.status, code: error.code });
         await delay(waitTime);
         continue;
       }
@@ -146,7 +148,12 @@ export const analyzeChunkWithGemini = async (chunk: DocumentChunk): Promise<Docu
     auditLogger.endOperation(opId, { success: true });
     return enhancedChunk;
   } catch (error: any) {
-    auditLogger.logError('GEMINI_ANALYZE_CHUNK', error, { chunkId: chunk.id });
+    const isInternal = error?.status === 500 || error?.code === 500 || error?.message?.includes('500');
+    if (isInternal) {
+      auditLogger.logWarning('GEMINI_ANALYZE_CHUNK', 'Gemini retornou 500, devolvendo chunk original', { chunkId: chunk.id, message: error.message });
+    } else {
+      auditLogger.logError('GEMINI_ANALYZE_CHUNK', error, { chunkId: chunk.id });
+    }
     console.error(`Erro ao processar chunk ${chunk.id} com Gemini:`, error.message);
     return chunk;
   }
