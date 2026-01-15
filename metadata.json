@@ -1,0 +1,5 @@
+{
+  "name": "GraphRAG Pipeline Visualizer",
+  "description": "Interface visual para pipeline de transformação de PDF em Grafo de Conhecimento (RAG + Graph Theory) com exportação rigorosa de dados.",
+  "requestFramePermissions": []
+}
