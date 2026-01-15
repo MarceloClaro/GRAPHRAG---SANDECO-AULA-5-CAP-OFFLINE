@@ -88,20 +88,13 @@ Este rastreamento garante auditoria completa e transparência sobre qual serviç
 ### 📝 Histórico de Processamento de Texto
 Cada entidade passou por processamento progressivo com 5 etapas para garantir coesão e coerência:
 
-1. **original** → Texto original extraído
-2. **cleaned** → Remoção de quebras desnecessárias, hifen de linha, normalização de espaço
-3. **with_coesion** → Adição de conectivos (Neste contexto, Portanto, Assim, etc.)
-4. **with_coherence** → Melhoria de pronomes soltos, referências a entidades, remoção de repetição
-5. **normalized** → Normalização de vocabulário jurídico (Art. → Artigo, Cap. → Capítulo, etc.)
+1. **original** - Texto original extraído
+2. **cleaned** - Remoção de quebras desnecessárias, normalização de espaço
+3. **with_coesion** - Adição de conectivos para melhor fluidez
+4. **with_coherence** - Melhoria de pronomes e referências
+5. **normalized** - Normalização de vocabulário jurídico
 
-O histórico está disponível no CSV exportado com as seguintes colunas:
-- `processingStages`: resumo da progressão (ex: "original[100w] → cleaned[95w] → with_coesion[98w]...")
-- `content_original`: texto original
-- `content_cleaned`: texto após limpeza
-- `content_coherent`: texto coerente com conectivos
-- `content_final`: versão final normalizada
-- `readability_original` a `readability_final`: scores de legibilidade (Flesch 0-100)
-- `wordcount_*`: progressão de palavras em cada etapa
+O histórico completo está disponível no arquivo CSV exportado com colunas progressivas para acompanhar a evolução do texto em cada etapa de processamento, incluindo pontuações de legibilidade e contagem de palavras.
 
 ---
 
