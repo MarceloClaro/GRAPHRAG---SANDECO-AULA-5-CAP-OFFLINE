@@ -2,6 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { DocumentChunk, EmbeddingVector } from "../types";
 import { auditLogger } from './auditLogger';
 import { Validator } from './validator';
+import { enrichChunkWithCoherence } from "./coherenceService";
 
 // Cache simples para respostas de IA (evita reprocessamento)
 const responseCache = new Map<string, any>();
@@ -132,21 +133,26 @@ export const analyzeChunkWithGemini = async (chunk: DocumentChunk): Promise<Docu
       content: result.cleaned_text || chunk.content,
       entityType: result.entity_type || chunk.entityType,
       entityLabel: result.entity_label || chunk.entityLabel,
-      keywords: result.keywords || []
+      keywords: result.keywords || [],
+      aiProvider: 'gemini',
+      contentOriginal: chunk.content
     };
     
+    // Aplica técnicas de coesão e coerência
+    let coherentChunk = enrichChunkWithCoherence(enhancedChunk);
+    
     // Valida chunk processado
-    Validator.validateChunk(enhancedChunk);
+    Validator.validateChunk(coherentChunk);
     
     // Armazena em cache
     if (responseCache.size >= CACHE_MAX_SIZE) {
       const firstKey = responseCache.keys().next().value;
       responseCache.delete(firstKey);
     }
-    responseCache.set(cacheKey, enhancedChunk);
+    responseCache.set(cacheKey, coherentChunk);
     
     auditLogger.endOperation(opId, { success: true });
-    return enhancedChunk;
+    return coherentChunk;
   } catch (error: any) {
     const isInternal = error?.status === 500 || error?.code === 500 || error?.message?.includes('500');
     if (isInternal) {
@@ -155,7 +161,7 @@ export const analyzeChunkWithGemini = async (chunk: DocumentChunk): Promise<Docu
       auditLogger.logError('GEMINI_ANALYZE_CHUNK', error, { chunkId: chunk.id });
     }
     console.error(`Erro ao processar chunk ${chunk.id} com Gemini:`, error.message);
-    return chunk;
+    return { ...chunk, aiProvider: 'gemini' };
   }
 };
 

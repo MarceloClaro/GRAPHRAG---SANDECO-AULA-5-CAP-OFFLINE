@@ -9,6 +9,7 @@ import {
 } from './services/mockDataService';
 import { enhanceChunksWithAI, generateRealEmbeddingsWithGemini } from './services/geminiService';
 import { enhanceChunksWithOllama, generateEmbeddingsWithOllama } from './services/ollamaService';
+import { enhanceChunksWithXiaozhi, generateEmbeddingsWithXiaozhi } from './services/xiaozhiService';
 import { trainCNNWithTripletLoss } from './services/cnnRefinementService';
 import { extractTextFromPDF } from './services/pdfService';
 import { downloadCSV } from './services/exportService';
@@ -51,11 +52,13 @@ const App: React.FC = () => {
   // Settings State
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [appSettings, setAppSettings] = useState<AppSettings>({
-    aiProvider: 'gemini',
+    aiProvider: 'ollama',
     geminiApiKey: '',
     ollamaEndpoint: 'http://localhost:11434',
     ollamaModel: 'llama3.2:3b',
-    ollamaEmbeddingModel: 'nomic-embed-text'
+    ollamaEmbeddingModel: 'nomic-embed-text',
+    xiaozhiWebsocketUrl: 'wss://api.tenclass.net/xiaozhi/v1/',
+    xiaozhiToken: 'test-token'
   });
 
   // Load settings from localStorage on mount
@@ -139,6 +142,11 @@ const App: React.FC = () => {
         }, (progress) => {
           setProcessingStatus(`Ollama: Processando chunks... ${progress}%`);
         });
+      } else if (appSettings.aiProvider === 'xiaozhi') {
+        setProcessingStatus("Xiaozhi: Limpando texto e identificando entidades...");
+        enhanced = await enhanceChunksWithXiaozhi(chunks, (progress) => {
+          setProcessingStatus(`Xiaozhi: Processando chunks... ${progress}%`);
+        });
       } else {
         // Gemini
         if (!appSettings.geminiApiKey && !(window as any).GEMINI_API_KEY) {
@@ -184,6 +192,11 @@ const App: React.FC = () => {
               embeddingModel: appSettings.ollamaEmbeddingModel
             }, (progress) => {
                 setProcessingStatus(`Gerando vetores (Ollama ${appSettings.ollamaEmbeddingModel})... ${progress}%`);
+            });
+        } else if (appSettings.aiProvider === 'xiaozhi') {
+            setProcessingStatus("Gerando Embeddings com Xiaozhi (Cloud)...");
+            embeds = await generateEmbeddingsWithXiaozhi(chunks, (progress) => {
+                setProcessingStatus(`Gerando vetores (Xiaozhi)... ${progress}%`);
             });
         } else {
             // Gemini embeddings
@@ -562,9 +575,31 @@ const App: React.FC = () => {
               ) : (
                 <>
                   <div className={`flex justify-between items-center p-3 rounded-lg border ${aiEnhanced ? 'bg-purple-50 border-purple-100' : 'bg-green-50 border-green-100'}`}>
-                     <span className={`${aiEnhanced ? 'text-purple-800' : 'text-green-800'} font-medium`}>
-                        {aiEnhanced ? `✨ ${chunks.length} entidades enriquecidas e limpas pela IA.` : `✅ ${chunks.length} entidades extraídas (Bruto). Recomenda-se processar com Gemini.`}
-                     </span>
+                     <div className="flex-1">
+                        <span className={`${aiEnhanced ? 'text-purple-800' : 'text-green-800'} font-medium block`}>
+                           {aiEnhanced ? `✨ ${chunks.length} entidades enriquecidas e limpas pela IA` : `✅ ${chunks.length} entidades extraídas (Bruto)`}
+                        </span>
+                        {aiEnhanced && (
+                          <span className="text-xs text-purple-600 mt-1">
+                            {(() => {
+                              const providers = chunks.reduce((acc: Record<string, number>, chunk) => {
+                                const p = chunk.aiProvider || 'desconhecido';
+                                acc[p] = (acc[p] || 0) + 1;
+                                return acc;
+                              }, {});
+                              const providerText = Object.entries(providers)
+                                .map(([p, count]) => {
+                                  if (p === 'ollama') return `🦙 Ollama: ${count}`;
+                                  if (p === 'gemini') return `🌐 Gemini: ${count}`;
+                                  if (p === 'xiaozhi') return `☁️ Xiaozhi: ${count}`;
+                                  return `${p}: ${count}`;
+                                })
+                                .join(' • ');
+                              return `Processado por: ${providerText}`;
+                            })()}
+                          </span>
+                        )}
+                     </div>
                      <button onClick={exportChunks} className="flex items-center text-sm bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition">
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                         CSV

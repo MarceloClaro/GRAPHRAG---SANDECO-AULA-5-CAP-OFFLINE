@@ -46,6 +46,23 @@ export const generateTechnicalReport = (
         .sort((a, b) => b.centrality - a.centrality)
         .slice(0, 5) || [];
 
+    // Rastreamento de qual IA gerou as entidades
+    const aiProviderStats = chunks.reduce((acc: Record<string, number>, chunk) => {
+      const provider = chunk.aiProvider || 'desconhecido';
+      acc[provider] = (acc[provider] || 0) + 1;
+      return acc;
+    }, {});
+    
+    const aiProviderReport = Object.entries(aiProviderStats)
+      .map(([provider, count]) => {
+        let providerName = provider;
+        if (provider === 'ollama') providerName = '🦙 Ollama Local';
+        if (provider === 'gemini') providerName = '🌐 Google Gemini';
+        if (provider === 'xiaozhi') providerName = '☁️ Xiaozhi Cloud';
+        return `- **${providerName}**: ${count} entidades (${((count/chunks.length)*100).toFixed(1)}%)`;
+      })
+      .join('\n');
+
     return `
 # RELATÓRIO TÉCNICO DE PROCESSAMENTO DE CONHECIMENTO (GRAPH RAG)
 **Classificação:** QUALIS A1 / AUDITORIA TÉCNICA
@@ -60,6 +77,31 @@ export const generateTechnicalReport = (
 Este documento certifica a execução bem-sucedida da pipeline de transformação de documentos não-estruturados (PDF) em um Grafo de Conhecimento Semântico enriquecido. O processo utilizou uma abordagem híbrida combinando Modelos de Linguagem Grande (LLMs) para extração de entidades e Algoritmos de Grafos para estruturação topológica.
 
 O objetivo principal foi superar as limitações da busca vetorial tradicional (RAG plano) através da implementação de navegação estruturada (GraphRAG), permitindo inferências multi-hop e melhor contextualização. O sistema processou **${chunks.length} fragmentos de texto**, gerando um grafo com **${metrics?.totalNodes || 0} nós** e **${metrics?.totalEdges || 0} conexões semânticas**.
+
+### 📊 Rastreamento de Provedores de IA
+As entidades foram enriquecidas e limpas pelos seguintes provedores:
+
+${aiProviderReport}
+
+Este rastreamento garante auditoria completa e transparência sobre qual serviço de IA processou cada fragmento.
+
+### 📝 Histórico de Processamento de Texto
+Cada entidade passou por processamento progressivo com 5 etapas para garantir coesão e coerência:
+
+1. **original** → Texto original extraído
+2. **cleaned** → Remoção de quebras desnecessárias, hifen de linha, normalização de espaço
+3. **with_coesion** → Adição de conectivos (Neste contexto, Portanto, Assim, etc.)
+4. **with_coherence** → Melhoria de pronomes soltos, referências a entidades, remoção de repetição
+5. **normalized** → Normalização de vocabulário jurídico (Art. → Artigo, Cap. → Capítulo, etc.)
+
+O histórico está disponível no CSV exportado com as seguintes colunas:
+- `processingStages`: resumo da progressão (ex: "original[100w] → cleaned[95w] → with_coesion[98w]...")
+- `content_original`: texto original
+- `content_cleaned`: texto após limpeza
+- `content_coherent`: texto coerente com conectivos
+- `content_final`: versão final normalizada
+- `readability_original` a `readability_final`: scores de legibilidade (Flesch 0-100)
+- `wordcount_*`: progressão de palavras em cada etapa
 
 ---
 

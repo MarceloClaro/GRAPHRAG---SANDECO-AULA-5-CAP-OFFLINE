@@ -30,6 +30,9 @@ export interface DocumentChunk {
   sourceFile?: string;
   pageNumber?: number;
   content: string; // O texto completo (Qualis A1 rigor)
+  contentOriginal?: string; // Texto original antes de processamento
+  contentCleaned?: string; // Texto após limpeza e organização
+  contentCoherent?: string; // Texto após adição de coesão
   tokens: number;
   tokenCount?: number;
   dueDate?: string;
@@ -37,6 +40,9 @@ export interface DocumentChunk {
   entityLabel?: string; // Ex: Art. 1º, Cap. II, Introdução
   keywords?: string[]; // Entidades identificadas por IA
   aiProvider?: string; // 'gemini' | 'ollama' | 'xiaozhi'
+  processingHistory?: string; // Histórico: original → cleaned → coherent → normalized
+  processingStages?: Record<string, any>; // Detalhes de cada etapa
+  readabilityScore?: number; // Score de legibilidade Flesch
   uploadTime?: string;
   processingTime?: number;
   hash?: string;

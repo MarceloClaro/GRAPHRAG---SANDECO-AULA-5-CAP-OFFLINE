@@ -1,4 +1,5 @@
 import { DocumentChunk, EmbeddingVector } from "../types";
+import { enrichChunkWithCoherence } from "./coherenceService";
 
 export interface OllamaConfig {
   endpoint: string;
@@ -70,17 +71,24 @@ Retorne APENAS o JSON sem explicações.`;
     const data = await response.json();
     const result = JSON.parse(data.response || "{}");
 
-    return {
+    let enrichedChunk = {
       ...chunk,
       content: result.cleaned_text || chunk.content,
       entityType: result.entity_type || chunk.entityType,
       entityLabel: result.entity_label || chunk.entityLabel,
-      keywords: result.keywords || []
+      keywords: result.keywords || [],
+      aiProvider: 'ollama',
+      contentOriginal: chunk.content
     };
+
+    // Aplica técnicas de coesão e coerência
+    enrichedChunk = enrichChunkWithCoherence(enrichedChunk);
+
+    return enrichedChunk;
 
   } catch (error: any) {
     console.error(`Erro ao processar chunk ${chunk.id.substring(0,8)} com Ollama:`, error.message || error);
-    return chunk;
+    return { ...chunk, aiProvider: 'ollama' };
   }
 };
 

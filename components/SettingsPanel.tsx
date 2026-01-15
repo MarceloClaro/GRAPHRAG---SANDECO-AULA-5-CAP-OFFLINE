@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export type AIProvider = 'gemini' | 'ollama';
+export type AIProvider = 'gemini' | 'ollama' | 'xiaozhi';
 
 export interface AppSettings {
   aiProvider: AIProvider;
@@ -8,6 +8,8 @@ export interface AppSettings {
   ollamaEndpoint: string;
   ollamaModel: string;
   ollamaEmbeddingModel: string;
+  xiaozhiWebsocketUrl: string;
+  xiaozhiToken: string;
 }
 
 interface SettingsPanelProps {
@@ -129,6 +131,23 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onSave, 
             >
               🦙 Ollama (Local)<br />
               <small style={{ opacity: 0.7 }}>Offline, Grátis, CPU</small>
+            </button>
+            <button
+              onClick={() => setSettings({ ...settings, aiProvider: 'xiaozhi' })}
+              style={{
+                flex: 1,
+                padding: '12px',
+                backgroundColor: settings.aiProvider === 'xiaozhi' ? '#f59e0b' : '#2d2d2d',
+                color: 'white',
+                border: settings.aiProvider === 'xiaozhi' ? '2px solid #fbbf24' : '2px solid #444',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: settings.aiProvider === 'xiaozhi' ? 'bold' : 'normal'
+              }}
+            >
+              ☁️ Xiaozhi (Cloud)<br />
+              <small style={{ opacity: 0.7 }}>Online, WebSocket</small>
             </button>
           </div>
         </div>
@@ -292,6 +311,66 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose, onSave, 
                 ollama pull {settings.ollamaModel}<br />
                 ollama pull {settings.ollamaEmbeddingModel}
               </code>
+            </div>
+          </div>
+        )}
+
+        {/* Configurações Xiaozhi */}
+        {settings.aiProvider === 'xiaozhi' && (
+          <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#2d2d2d', borderRadius: '8px' }}>
+            <h3 style={{ marginTop: 0, marginBottom: '12px', fontSize: '16px' }}>☁️ Configuração do Xiaozhi</h3>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                WebSocket URL
+              </label>
+              <input
+                type="text"
+                value={settings.xiaozhiWebsocketUrl}
+                onChange={(e) => setSettings({ ...settings, xiaozhiWebsocketUrl: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#1e1e1e',
+                  color: 'white',
+                  border: '1px solid #444',
+                  borderRadius: '6px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px'
+                }}
+                placeholder="wss://api.tenclass.net/xiaozhi/v1/"
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+                Token de Autenticação
+              </label>
+              <input
+                type="password"
+                value={settings.xiaozhiToken}
+                onChange={(e) => setSettings({ ...settings, xiaozhiToken: e.target.value })}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: '#1e1e1e',
+                  color: 'white',
+                  border: '1px solid #444',
+                  borderRadius: '6px',
+                  fontFamily: 'monospace',
+                  fontSize: '12px'
+                }}
+                placeholder="test-token"
+              />
+            </div>
+
+            <div style={{ backgroundColor: '#1a1a1a', padding: '12px', borderRadius: '6px', fontSize: '12px', color: '#bbb' }}>
+              <strong>ℹ️ Informações:</strong>
+              <ul style={{ marginTop: '8px', marginBottom: '0', paddingLeft: '20px' }}>
+                <li>URL: api.tenclass.net/xiaozhi/</li>
+                <li>MQTT: mqtt.xiaozhi.me</li>
+                <li>Versão: V2</li>
+              </ul>
             </div>
           </div>
         )}
