@@ -42,7 +42,7 @@ Abra: **http://localhost:3000**
 
 ### Etapa 3: Gerar Embeddings
 **Opção A (Melhor Qualidade):**
-- Selecione "Gemini text-embedding-004"
+- Selecione "Gemini text-embedding-001"
 - Clique em "Gerar Embeddings"
 
 **Opção B (Mais Rápido):**
@@ -74,7 +74,7 @@ Abra: **http://localhost:3000**
 ### Para Melhores Resultados:
 ✅ Use documentos bem estruturados (PDFs de artigos, leis, livros)
 ✅ Sempre enriqueça com Gemini AI antes de gerar embeddings
-✅ Use Gemini text-embedding-004 para máxima qualidade
+✅ Use Gemini text-embedding-001 para máxima qualidade
 ✅ Configure a CNN com estratégia "hard" para melhor refinamento
 
 ### Resolução de Problemas:

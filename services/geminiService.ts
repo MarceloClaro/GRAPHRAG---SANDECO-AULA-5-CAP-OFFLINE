@@ -37,7 +37,8 @@ const getAIClient = () => {
 // Switch to gemini-2.0-flash-exp as gemini-3-flash-preview (from prompt guidelines) 
 // might not be available to all API keys yet, causing 404.
 const modelName = 'gemini-2.0-flash-exp';
-const embeddingModelName = 'text-embedding-004';
+// Use text-embedding-001 as per Google's API compatibility notifications
+const embeddingModelName = 'text-embedding-001';
 
 interface GeminiChunkResponse {
   cleaned_text: string;
@@ -184,7 +185,7 @@ export const enhanceChunksWithAI = async (chunks: DocumentChunk[], onProgress: (
 };
 
 /**
- * Gera embeddings reais usando o modelo text-embedding-004 do Gemini.
+ * Gera embeddings reais usando o modelo text-embedding-001 do Gemini.
  */
 export const generateRealEmbeddingsWithGemini = async (chunks: DocumentChunk[], onProgress: (progress: number) => void): Promise<EmbeddingVector[]> => {
   const opId = auditLogger.startOperation('GEMINI_EMBEDDINGS', { chunkCount: chunks.length, model: embeddingModelName });
@@ -234,7 +235,7 @@ ${chunk.content}
         } catch (e) {
             console.error("Falha ao gerar embedding para chunk", chunk.id, e);
             // Fallback para vetor zerado ou aleatório em caso de falha crítica para não parar pipeline
-            // Use 768 dimensions as that is standard for text-embedding-004
+            // Use 768 dimensions as that is standard for text-embedding-001
             return {
                 id: chunk.id,
                 vector: new Array(768).fill(0).map(() => Math.random()),
