@@ -118,7 +118,7 @@ http://localhost:3000
 - Geração de rótulos descritivos
 
 ### ✅ Embeddings
-**Opção 1:** Gemini text-embedding-004 (Recomendado)
+**Opção 1:** Gemini text-embedding-001 (Recomendado)
 - API real da Google
 - 768 dimensões
 - Alta qualidade semântica
@@ -183,7 +183,7 @@ http://localhost:3000
 
 ### O Que REQUER API Key
 - ✅ Enriquecimento com IA (Gemini Flash)
-- ✅ Embeddings de alta qualidade (text-embedding-004)
+- ✅ Embeddings de alta qualidade (text-embedding-001)
 
 ### O Que FUNCIONA SEM API Key
 - ✅ Processamento de PDF
@@ -203,7 +203,7 @@ http://localhost:3000
 ### Para Máxima Qualidade:
 1. ✅ Configure a API Key do Gemini
 2. ✅ Enriqueça texto com IA
-3. ✅ Use embeddings Gemini text-embedding-004
+3. ✅ Use embeddings Gemini text-embedding-001
 4. ✅ Refine com CNN (15-20 epochs)
 
 ### Para Uso Offline/Gratuito:

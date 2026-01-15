@@ -629,7 +629,7 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4">
                  <div>
-                    <h3 className="font-semibold text-indigo-900">Geração de Embeddings ({appSettings.aiProvider === 'ollama' ? `Ollama (${appSettings.ollamaEmbeddingModel})` : 'Gemini text-embedding-004'})</h3>
+                    <h3 className="font-semibold text-indigo-900">Geração de Embeddings ({appSettings.aiProvider === 'ollama' ? `Ollama (${appSettings.ollamaEmbeddingModel})` : 'Gemini text-embedding-001'})</h3>
                     <p className="text-sm text-indigo-700">Vetores gerados com sucesso. Dimensões: {embeddings[0]?.vector.length || 0}.</p>
                  </div>
                  <button onClick={exportEmbeddings} className="flex items-center text-sm bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition">

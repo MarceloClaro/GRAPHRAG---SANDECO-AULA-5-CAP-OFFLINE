@@ -55,7 +55,7 @@ graph TB
         F --> I[Input Rico]
         G --> I
         H --> I
-        I --> J[text-embedding-004 / nomic-embed-text]
+        I --> J[text-embedding-001 / nomic-embed-text]
         J --> K[Vetor 768d]
     end
     
@@ -233,7 +233,7 @@ Texto: ${chunk.content}`;
 #### 1.2.1. Modelo Base
 
 **Provedor Cloud (Gemini):**
-- Modelo: `text-embedding-004`
+- Modelo: `text-embedding-001`
 - Dimensionalidade: 768
 - Normalização: L2 (norma unitária)
 
@@ -275,12 +275,12 @@ async function generateRealEmbeddingsWithGemini(
       const richInput = `[${chunk.entityType}] [${chunk.keywords?.join(', ')}] ${chunk.content}`;
       
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-001:embedContent?key=${API_KEY}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'models/text-embedding-004',
+            model: 'models/text-embedding-001',
             content: { parts: [{ text: richInput }] }
           })
         }
@@ -1048,7 +1048,7 @@ Acesse: `http://localhost:3000`
 **Modelos Utilizados:**
 
 - Análise: `gemini-2.0-flash-exp`
-- Embeddings: `text-embedding-004` (768 dimensões)
+- Embeddings: `text-embedding-001` (768 dimensões)
 
 #### Opção 2: Ollama (Local - Gratuito)
 
@@ -1230,7 +1230,7 @@ ollama serve
 
 - **Frontend:** React 19 + TypeScript + Vite
 - **Visualização:** D3.js Force Simulation + Recharts
-- **IA Cloud:** Google Gemini 2.0 Flash + text-embedding-004
+- **IA Cloud:** Google Gemini 2.0 Flash + text-embedding-001
 - **IA Local:** Ollama (llama3.2:3b + nomic-embed-text)
 - **PDF Processing:** PDF.js
 - **Machine Learning:** TensorFlow.js (CNN + Triplet Loss)

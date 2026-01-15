@@ -20,7 +20,7 @@
 
 #### geminiService.ts (já estava implementado)
 - ✅ API real do Gemini 2.0 Flash para limpeza e classificação de texto
-- ✅ API real do text-embedding-004 para embeddings de alta qualidade
+- ✅ API real do text-embedding-001 para embeddings de alta qualidade
 - ✅ Sistema de retry com backoff exponencial para rate limiting
 - ✅ Tratamento robusto de erros
 
@@ -110,7 +110,7 @@ A aplicação estará disponível em: **http://localhost:3000**
   - Gera rótulos descritivos
 
 ### ✅ Etapa 3: Embeddings
-**Opção 1 (Recomendado):** Gemini text-embedding-004
+**Opção 1 (Recomendado):** Gemini text-embedding-001
 - Embeddings de 768 dimensões
 - Alta qualidade semântica
 - Input enriquecido com metadados
@@ -192,7 +192,7 @@ A aplicação estará disponível em: **http://localhost:3000**
 ### API Key do Gemini
 - **OBRIGATÓRIO** para:
   - Enriquecimento de texto com IA
-  - Embeddings de alta qualidade (text-embedding-004)
+  - Embeddings de alta qualidade (text-embedding-001)
 - **OPCIONAL** para:
   - Embeddings locais (TF-IDF)
   - Visualização e análise de grafos
@@ -231,7 +231,7 @@ A aplicação estará disponível em: **http://localhost:3000**
 ## 🎓 Tecnologias Utilizadas
 
 - **Frontend:** React 19 + TypeScript + Vite
-- **IA:** Google Gemini 2.0 Flash + text-embedding-004
+- **IA:** Google Gemini 2.0 Flash + text-embedding-001
 - **Visualização:** D3.js (Force Graph) + Recharts
 - **PDF:** PDF.js
 - **Matemática:** TF-IDF, PCA, K-Means++, Triplet Loss
