@@ -14,7 +14,7 @@ import { trainCNNWithTripletLoss } from './services/cnnRefinementService';
 import { extractTextFromPDF } from './services/pdfService';
 import { downloadCSV, exportChunksWithHistory, exportCleanRowsOnly } from './services/exportService';
 import { generateTechnicalReport, downloadReportAsPDF, downloadReportAsXLSX, UnifiedRow } from './services/reportService';
-import { enrichChunksWithMode, exportEnrichedResultsToCSV, EnrichmentMode, EnrichedChunkResult } from './services/csvEnrichmentOrchestratorService';
+import { enrichChunksWithMode, exportEnrichedResultsToCSV, exportRawEntitiesCSV, EnrichmentMode, EnrichedChunkResult } from './services/csvEnrichmentOrchestratorService';
 import { LLMEnrichmentConfig } from './services/csvLLMEnhancerService';
 import PipelineProgress from './components/PipelineProgress';
 import FullContentModal from './components/FullContentModal';
@@ -358,6 +358,27 @@ const App: React.FC = () => {
       console.error('Erro ao enriquecer CSV:', error);
       setEnrichmentMessage('❌ Erro ao processar. Tente o modo Rápido.');
       setTimeout(() => setIsEnriching(false), 3000);
+    }
+  };
+
+  const exportRawEntities = () => {
+    if (!enrichedResults || enrichedResults.length === 0) {
+      alert('Primeiro exporte um CSV enriquecido para gerar entidades brutas.');
+      return;
+    }
+
+    try {
+      const csvContent = exportRawEntitiesCSV(enrichedResults, false);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `entidades_brutas_${Date.now()}.csv`;
+      link.click();
+
+      console.log('✅ Entidades brutas exportadas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar entidades brutas:', error);
+      alert('Erro ao exportar entidades brutas.');
     }
   };
 
@@ -752,6 +773,7 @@ const App: React.FC = () => {
                          onChange={(e) => setEnrichmentMode(e.target.value as EnrichmentMode)}
                          className="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white"
                          disabled={isEnriching}
+                         title="Selecione o modo de enriquecimento CSV"
                        >
                          <option value="rapido">⚡ Rápido (regex)</option>
                          <option value="preciso">🎯 Preciso (LLM)</option>
@@ -761,9 +783,19 @@ const App: React.FC = () => {
                          onClick={() => exportEnrichedCSV(false)} 
                          className="flex items-center text-sm bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                          disabled={isEnriching}
+                         title="Exportar CSV enriquecido com todas as colunas"
                        >
                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                          CSV RAG
+                       </button>
+                       <button 
+                         onClick={() => exportRawEntities()} 
+                         className="flex items-center text-sm bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                         disabled={!enrichedResults || enrichedResults.length === 0}
+                         title="Exportar entidades extraídas em formato bruto"
+                       >
+                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m0 0h6m-6-6h6m0 0h6"/></svg>
+                         Entidades (Bruto)
                        </button>
                      </div>
                   </div>
