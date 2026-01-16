@@ -8,7 +8,8 @@
 
 > **Autor:** Prof. Marcelo Claro Laranjeira  
 > **Instituição:** SANDECO - Sistema Avançado de Análise Documental com Coerência Textual  
-> **Versão:** 2.5.0 | **Data:** 15 de Janeiro de 2026 | **Status:** PRONTO PARA PRODUÇÃO ✓
+> **Versão:** 2.5.2 | **Data:** 16 de Janeiro de 2026 | **Status:** PRONTO PARA PRODUÇÃO ✓  
+> **Última Atualização:** CSV Acumulativo (40 colunas) + RAG + Chatbot + Xiaozhi + TTS + IndexedDB
 
 ---
 
@@ -19,6 +20,7 @@
 | 🟢 **Iniciante** | 3 min | Leigos, usuários finais | [Para Leigos](#1-para-leigos-explicação-simples) |
 | 🟡 **Intermediário** | 15 min | Desenvolvedores, técnicos | [Visão Técnica](#2-visão-técnica-para-profissionais) |
 | 🔴 **Avançado** | 30 min | Banca avaliadora, pesquisadores | [Arquitetura Completa](#3-arquitetura-completa-banca-qualis-a1) |
+| 🎯 **Integração** | 10 min | Chatbot, RAG, Xiaozhi | [Integração Completa](#integração-completa-csv-rag-chatbot) |
 
 ---
 
