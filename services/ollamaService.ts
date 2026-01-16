@@ -34,18 +34,22 @@ export const analyzeChunkWithOllama = async (
   config: OllamaConfig
 ): Promise<DocumentChunk> => {
   try {
-    const prompt = `Você é um especialista em processamento de documentos legais e acadêmicos.
+    const prompt = `Você é um especialista em documentos legais/acadêmicos.
 
-Analise o seguinte fragmento de texto e retorne um JSON com:
-1. "cleaned_text": Texto limpo (remova quebras de linha desnecessárias, hifens, etc)
-2. "entity_type": Tipo do fragmento (ARTIGO, INCISO, PARAGRAFO, CAPITULO, DEFINICAO, CONCEITO, etc)
-3. "entity_label": Rótulo curto identificável
-4. "keywords": Array com 3-5 palavras-chave principais
+Instruções:
+- Idioma: português.
+- Saída: JSON válido.
+- Se não souber, devolva "N/A" no campo correspondente.
+- Formato do conteúdo (bullets ajudam a reduzir alucinação):
+  1) cleaned_text: texto limpo (remova quebras e hifens)
+  2) entity_type: ARTIGO | INCISO | PARAGRAFO | CAPITULO | DEFINICAO | CONCEITO | OUTRO
+  3) entity_label: rótulo curto
+  4) keywords: array com 3-5 palavras-chave
 
-Texto:
+Texto de entrada:
 "${chunk.content}"
 
-Retorne APENAS o JSON sem explicações.`;
+Retorne APENAS o JSON.`;
 
     const requestBody: OllamaGenerateRequest = {
       model: config.model,
@@ -53,8 +57,10 @@ Retorne APENAS o JSON sem explicações.`;
       format: 'json',
       stream: false,
       options: {
-        temperature: 0.3,
-        num_predict: 500
+        temperature: 0.25,
+        num_predict: 400,
+        top_p: 0.9,
+        top_k: 40
       }
     };
 
@@ -161,10 +167,13 @@ ${chunk.content}
 
         const data = await response.json();
         const vector = data.embedding || [];
+        // Normaliza para cosine similarity
+        const norm = Math.sqrt(vector.reduce((sum: number, v: number) => sum + v * v, 0) || 1);
+        const normalized = norm > 0 ? vector.map((v: number) => v / norm) : vector;
         
         return {
           id: chunk.id,
-          vector: vector,
+          vector: normalized,
           contentSummary: chunk.content.substring(0, 50) + '...',
           fullContent: chunk.content,
           dueDate: chunk.dueDate,
