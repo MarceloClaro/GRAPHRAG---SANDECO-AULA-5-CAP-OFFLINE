@@ -367,7 +367,11 @@ const App: React.FC = () => {
       const cluster = clusters.find(c => c.id === chunk.id);
       const node = graphData?.nodes.find(n => n.id === chunk.id);
       const degree = graphData ? graphData.links.filter(l => l.source === chunk.id || l.target === chunk.id).length : undefined;
-      const provider = appSettings.aiProvider === 'ollama' ? `Ollama (${appSettings.ollamaModel})` : 'Gemini';
+      const provider = appSettings.aiProvider === 'ollama' 
+        ? `Ollama (${appSettings.ollamaModel})` 
+        : appSettings.aiProvider === 'xiaozhi'
+        ? 'Xiaozhi'
+        : 'Gemini';
 
       return {
         Chunk_ID: chunk.id,
@@ -431,8 +435,18 @@ const App: React.FC = () => {
               <span className="hidden sm:inline">Configurações</span>
             </button>
             <div className="text-right hidden md:block">
-              <span className={`${appSettings.aiProvider === 'ollama' ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 to-purple-600'} text-white text-xs px-2 py-1 rounded shadow-sm`}>
-                {appSettings.aiProvider === 'ollama' ? '🦙 Ollama Local' : '🌐 Gemini Cloud'}
+              <span className={`${
+                appSettings.aiProvider === 'ollama' 
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
+                  : appSettings.aiProvider === 'xiaozhi'
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-600'
+                  : 'bg-gradient-to-r from-indigo-500 to-purple-600'
+              } text-white text-xs px-2 py-1 rounded shadow-sm`}>
+                {appSettings.aiProvider === 'ollama' 
+                  ? '🦙 Ollama Local' 
+                  : appSettings.aiProvider === 'xiaozhi'
+                  ? '🌐 Xiaozhi WebSocket'
+                  : '🌐 Gemini Cloud'}
               </span>
             </div>
           </div>
@@ -502,7 +516,11 @@ const App: React.FC = () => {
                       <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                       </svg>
-                      {appSettings.aiProvider === 'ollama' ? 'Limpar & Classificar com Ollama' : 'Limpar & Classificar com Gemini'}
+                      {appSettings.aiProvider === 'ollama' 
+                        ? 'Limpar & Classificar com Ollama' 
+                        : appSettings.aiProvider === 'xiaozhi'
+                        ? 'Limpar & Classificar com Xiaozhi'
+                        : 'Limpar & Classificar com Gemini'}
                     </button>
                   )}
                   <button onClick={handleProcessEmbeddings} disabled={isProcessing} className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg shadow-sm transition-all font-medium flex items-center">
@@ -664,7 +682,13 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4">
                  <div>
-                    <h3 className="font-semibold text-indigo-900">Geração de Embeddings ({appSettings.aiProvider === 'ollama' ? `Ollama (${appSettings.ollamaEmbeddingModel})` : 'Gemini text-embedding-004'})</h3>
+                    <h3 className="font-semibold text-indigo-900">Geração de Embeddings ({
+                      appSettings.aiProvider === 'ollama' 
+                        ? `Ollama (${appSettings.ollamaEmbeddingModel})` 
+                        : appSettings.aiProvider === 'xiaozhi'
+                        ? 'Xiaozhi Embeddings'
+                        : 'Gemini text-embedding-004'
+                    })</h3>
                     <p className="text-sm text-indigo-700">Vetores gerados com sucesso. Dimensões: {embeddings[0]?.vector.length || 0}.</p>
                  </div>
                  <button onClick={exportEmbeddings} className="flex items-center text-sm bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition">
