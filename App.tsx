@@ -373,28 +373,88 @@ const App: React.FC = () => {
         ? 'Xiaozhi'
         : 'Gemini';
 
-      return {
+      // ESTRUTURA ACUMULATIVA - Adiciona colunas conforme etapas avançam
+      const row: any = {
+        // ETAPA 1: Upload & Identificação (Sempre presente)
         Chunk_ID: chunk.id,
         Arquivo: chunk.source,
-        Tipo_IA: chunk.entityType || '',
-        Rotulo: chunk.entityLabel || '',
-        Palavras_Chave: chunk.keywords?.join('; ') || '',
-        Conteudo_Preview: (chunk.content || '').replace(/\s+/g, ' ').slice(0, 140),
-        Tokens: chunk.tokens,
-        Prazo: chunk.dueDate || '',
+        Pagina: chunk.pageNumber || '',
+        
+        // ETAPA 1: Enriquecimento IA
+        Tipo_Entidade_IA: chunk.entityType || '',
+        Rotulo_Entidade: chunk.entityLabel || '',
         Provedor_IA: provider,
-        Modelo_Embedding: embedding?.modelUsed || '',
-        Dim_Embedding: embedding?.vector?.length || '',
-        Vetor_Sample: embedding ? `[${embedding.vector.slice(0, 3).map(v => v.toFixed(4)).join('; ')}...]` : '',
-        Cluster_ID: cluster?.clusterId ?? '',
-        Cluster_X: cluster?.x ?? '',
-        Cluster_Y: cluster?.y ?? '',
-        Grafo_Grupo: node?.group ?? '',
-        Grafo_Centralidade: node?.centrality ?? '',
-        Grau_Arestas: degree ?? '',
-        Palavras_Grafo: node?.keywords?.join('; ') || '',
-        Etapa_Atual: stage,
+        Timestamp_Upload: chunk.uploadTime || new Date().toISOString(),
       };
+
+      // ETAPA 2: Limpeza & Coerência
+      if (stage >= PipelineStage.UPLOAD) {
+        row.Conteudo_Original = (chunk.contentOriginal || chunk.content || '').slice(0, 200);
+        row.Conteudo_Processado = (chunk.content || '').slice(0, 200);
+        row.Tokens_Originais = chunk.tokensOriginal || chunk.tokens || 0;
+        row.Tokens_Atuais = chunk.tokens || 0;
+        row.Score_Coesao = chunk.coesionScore?.toFixed(4) || '';
+        row.Score_Coerencia = chunk.coherenceScore?.toFixed(4) || '';
+      }
+
+      // ETAPA 3: Análise Semântica
+      if (stage >= PipelineStage.UPLOAD) {
+        row.Palavras_Chave = chunk.keywords?.join('; ') || '';
+        row.Prazo = chunk.dueDate || '';
+        row.Conteudo_Preview = (chunk.content || '').replace(/\s+/g, ' ').slice(0, 140);
+      }
+
+      // ETAPA 4: Embeddings (Adicionado quando processado)
+      if (embeddings.length > 0) {
+        row.Modelo_Embedding = embedding?.modelUsed || '';
+        row.Dim_Vetor = embedding?.vector?.length || '';
+        row.Vetor_Preview = embedding ? `[${embedding.vector.slice(0, 5).map(v => v.toFixed(4)).join('; ')}...]` : '';
+        row.Timestamp_Embedding = embedding?.timestamp || '';
+      }
+
+      // ETAPA 5: Refinamento CNN (Adicional se processado)
+      if (embeddings.length > 0) {
+        row.CNN_Epoch = embedding?.cnnEpoch || '';
+        row.CNN_Loss = embedding?.cnnLoss?.toFixed(6) || '';
+        row.Distancia_Triplet = embedding?.tripletDistance?.toFixed(4) || '';
+      }
+
+      // ETAPA 6: Clustering (Adicionado quando clusterizado)
+      if (clusters.length > 0) {
+        row.Cluster_ID = cluster?.clusterId ?? '';
+        row.Cluster_Label = cluster?.label || '';
+        row.Cluster_Coordenada_X = cluster?.x ?? '';
+        row.Cluster_Coordenada_Y = cluster?.y ?? '';
+        row.Distancia_Centroide = cluster?.distanceToCentroid?.toFixed(4) || '';
+        row.Score_Silhueta = cluster?.silhouetteScore?.toFixed(4) || '';
+      }
+
+      // ETAPA 7: Construção & Visualização Grafo
+      if (graphData && graphData.nodes.length > 0) {
+        row.Grafo_NodeID = node?.id || '';
+        row.Grafo_Group = node?.group ?? '';
+        row.Grafo_Centralidade = node?.centrality?.toFixed(4) ?? '';
+        row.Grafo_Betweenness = node?.betweenness?.toFixed(4) || '';
+        row.Grau_Arestas = degree ?? '';
+        row.Palavras_Chave_Grafo = node?.keywords?.join('; ') || '';
+        row.Timestamp_Grafo = node?.timestamp || '';
+      }
+
+      // METADADOS FINAIS (Sempre presente)
+      row.Etapa_Atual = stage;
+      row.Status_Processamento = stage === PipelineStage.UPLOAD 
+        ? 'Iniciado' 
+        : stage === PipelineStage.EMBEDDINGS 
+        ? 'Vetorizado' 
+        : stage === PipelineStage.CLUSTERING 
+        ? 'Clusterizado'
+        : stage === PipelineStage.GRAPH 
+        ? 'Grafo Construído'
+        : 'Completado';
+      row.Timestamp_Export = new Date().toISOString();
+      row.Versao_Pipeline = '2.5.0';
+
+      return row;
     });
   };
 
