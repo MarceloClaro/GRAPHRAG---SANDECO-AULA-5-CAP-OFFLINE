@@ -7,7 +7,7 @@
 [![Coherence System](https://img.shields.io/badge/Coesão_e_Coerência-5_Etapas-orange?style=for-the-badge)](docs/COHERENCE_TRACKING.md)
 
 > **Autor:** Prof. Marcelo Claro Laranjeira  
-> **Instituição:** SANDECO - Sistema Avançado de Análise Documental com Coerência Textual  
+> **Instituição:** 
 > **Versão:** 2.5.0 | **Data:** 15 de Janeiro de 2026 | **Rigor:** MÁXIMO ✓
 
 ---
