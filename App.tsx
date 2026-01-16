@@ -12,8 +12,10 @@ import { enhanceChunksWithOllama, generateEmbeddingsWithOllama } from './service
 import { enhanceChunksWithXiaozhi, generateEmbeddingsWithXiaozhi } from './services/xiaozhiService';
 import { trainCNNWithTripletLoss } from './services/cnnRefinementService';
 import { extractTextFromPDF } from './services/pdfService';
-import { downloadCSV } from './services/exportService';
+import { downloadCSV, exportChunksWithHistory, exportCleanRowsOnly } from './services/exportService';
 import { generateTechnicalReport, downloadReportAsPDF, downloadReportAsXLSX, UnifiedRow } from './services/reportService';
+import { enrichChunksWithMode, exportEnrichedResultsToCSV, EnrichmentMode, EnrichedChunkResult } from './services/csvEnrichmentOrchestratorService';
+import { LLMEnrichmentConfig } from './services/csvLLMEnhancerService';
 import PipelineProgress from './components/PipelineProgress';
 import FullContentModal from './components/FullContentModal';
 import ForceGraph, { ForceGraphRef } from './components/charts/ForceGraph';
@@ -86,6 +88,13 @@ const App: React.FC = () => {
   // Report State
   const [reportOpen, setReportOpen] = useState(false);
   const [reportText, setReportText] = useState('');
+
+  // CSV Enrichment State
+  const [enrichmentMode, setEnrichmentMode] = useState<EnrichmentMode>('rapido');
+  const [enrichmentProgress, setEnrichmentProgress] = useState(0);
+  const [enrichmentMessage, setEnrichmentMessage] = useState('');
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [enrichedResults, setEnrichedResults] = useState<EnrichedChunkResult[] | null>(null);
 
   // Handle Real File Upload
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,6 +300,65 @@ const App: React.FC = () => {
       Conteudo_Completo: c.content
     }));
     downloadCSV(dataToExport, 'etapa1_entidades_inteligentes.csv');
+  };
+
+  // Export CSV Enriquecido para RAG
+  const exportEnrichedCSV = async (includeNoise: boolean = false) => {
+    if (chunks.length === 0) {
+      alert('Nenhum dado para exportar. Faça upload primeiro.');
+      return;
+    }
+
+    setIsEnriching(true);
+    setEnrichmentProgress(0);
+    setEnrichmentMessage('Iniciando enriquecimento...');
+
+    try {
+      const sourceFile = chunks[0]?.source || 'documento.pdf';
+
+      // Configuração do LLM
+      const llmConfig: LLMEnrichmentConfig = {
+        provider: appSettings.aiProvider === 'ollama' ? 'ollama' : 
+                  appSettings.aiProvider === 'xiaozhi' ? 'xiaozhi' : 'gemini',
+        endpoint: appSettings.ollamaEndpoint,
+        model: appSettings.ollamaModel,
+        apiKey: appSettings.geminiApiKey,
+        token: appSettings.xiaozhiToken,
+        useCache: true,
+        cacheSize: 500
+      };
+
+      // Enriquecer com modo selecionado
+      const results = await enrichChunksWithMode(chunks, sourceFile, {
+        mode: enrichmentMode,
+        llmConfig: enrichmentMode !== 'rapido' ? llmConfig : undefined,
+        onProgress: (progress, message) => {
+          setEnrichmentProgress(progress);
+          setEnrichmentMessage(message);
+        }
+      });
+
+      setEnrichedResults(results);
+
+      // Exportar CSV
+      const csvContent = exportEnrichedResultsToCSV(results, includeNoise);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      const modeLabel = enrichmentMode === 'rapido' ? 'rapido' : 
+                        enrichmentMode === 'preciso' ? 'preciso_llm' : 'hibrido';
+      const noiseLabel = includeNoise ? 'completo' : 'limpo';
+      link.download = `csv_enriquecido_${modeLabel}_${noiseLabel}_${Date.now()}.csv`;
+      link.click();
+
+      setEnrichmentMessage('✅ CSV enriquecido exportado com sucesso!');
+      setTimeout(() => setIsEnriching(false), 2000);
+
+    } catch (error) {
+      console.error('Erro ao enriquecer CSV:', error);
+      setEnrichmentMessage('❌ Erro ao processar. Tente o modo Rápido.');
+      setTimeout(() => setIsEnriching(false), 3000);
+    }
   };
 
   const exportEmbeddings = () => {
@@ -635,7 +703,7 @@ const App: React.FC = () => {
                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
                       <p className="mt-4 text-lg font-medium text-slate-700">Carregar Documentos PDF</p>
-                      <p className="mt-1 text-sm text-slate-500">Pipeline RAG completa com limpeza de texto e classificação via Gemini AI.</p>
+                      <p className="mt-1 text-sm text-slate-500">Pipeline RAG completa com enriquecimento jurídico inteligente.</p>
                       <label className="mt-6 inline-block cursor-pointer">
                         <span className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg shadow-md font-medium transition-colors">
                            Selecionar Arquivos
@@ -678,11 +746,81 @@ const App: React.FC = () => {
                           </span>
                         )}
                      </div>
-                     <button onClick={exportChunks} className="flex items-center text-sm bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition">
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                        CSV
-                     </button>
+                     <div className="flex items-center gap-2">
+                       <select 
+                         value={enrichmentMode} 
+                         onChange={(e) => setEnrichmentMode(e.target.value as EnrichmentMode)}
+                         className="text-xs border border-slate-300 rounded px-2 py-1.5 bg-white"
+                         disabled={isEnriching}
+                       >
+                         <option value="rapido">⚡ Rápido (regex)</option>
+                         <option value="preciso">🎯 Preciso (LLM)</option>
+                         <option value="hibrido">🔄 Híbrido</option>
+                       </select>
+                       <button 
+                         onClick={() => exportEnrichedCSV(false)} 
+                         className="flex items-center text-sm bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                         disabled={isEnriching}
+                       >
+                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                         CSV RAG
+                       </button>
+                     </div>
                   </div>
+                  {isEnriching && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-blue-800">{enrichmentMessage}</span>
+                        <span className="text-sm text-blue-600">{enrichmentProgress}%</span>
+                      </div>
+                      <div className="w-full bg-blue-200 rounded-full h-2.5">
+                        <div 
+                          className="bg-blue-600 h-2.5 rounded-full transition-all duration-300" 
+                          style={{ width: `${enrichmentProgress}%` }}
+                        ></div>
+                      </div>
+                      {enrichmentMode === 'preciso' && (
+                        <p className="text-xs text-blue-600 mt-2">
+                          💡 Modo Preciso: Processamento mais lento (~1-2s/chunk), mas com maior acurácia via LLM
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Info sobre modos de enriquecimento */}
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-lg p-4">
+                    <h3 className="text-sm font-semibold text-indigo-900 mb-2">📊 Modos de Enriquecimento CSV para RAG</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                      <div className="bg-white rounded p-3 border border-indigo-100">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">⚡</span>
+                          <span className="font-semibold text-slate-800">Rápido</span>
+                        </div>
+                        <p className="text-slate-600">~100ms/chunk • Regex • 70% acurácia</p>
+                        <p className="text-slate-500 mt-1">Ideal para MVP e testes rápidos</p>
+                      </div>
+                      <div className="bg-white rounded p-3 border border-purple-100">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">🎯</span>
+                          <span className="font-semibold text-slate-800">Preciso</span>
+                        </div>
+                        <p className="text-slate-600">~1-2s/chunk • LLM • 95% acurácia</p>
+                        <p className="text-slate-500 mt-1">Produção e dados críticos</p>
+                      </div>
+                      <div className="bg-white rounded p-3 border border-blue-100">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">🔄</span>
+                          <span className="font-semibold text-slate-800">Híbrido</span>
+                        </div>
+                        <p className="text-slate-600">Instant UI + LLM async • 95% acurácia</p>
+                        <p className="text-slate-500 mt-1">Melhor UX (não bloqueia)</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-indigo-700 mt-3">
+                      💡 O CSV enriquecido inclui: rastreabilidade (fonte, página, artigo), limpeza de ruído, metadados jurídicos (hierarquia, tipo, referência)
+                    </p>
+                  </div>
+
                   <div className="overflow-x-auto rounded-lg border border-slate-200">
                     <table className="min-w-full divide-y divide-slate-200">
                       <thead className="bg-slate-50">
