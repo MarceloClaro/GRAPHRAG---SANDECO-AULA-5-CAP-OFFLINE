@@ -1,5 +1,7 @@
 # 🎉 NOVAS FUNCIONALIDADES IMPLEMENTADAS!
 
+**Versão:** v2.5.3 | **Data:** 16/01/2026
+
 ## ✨ Interface de Configuração & Suporte ao Ollama
 
 ---

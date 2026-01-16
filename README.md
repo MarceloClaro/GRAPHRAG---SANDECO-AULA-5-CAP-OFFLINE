@@ -1,8 +1,8 @@
-# 🚀 GraphRAG Pipeline Visualizer v2.5 - ELITE
+# 🚀 GraphRAG Pipeline Visualizer v2.5.3
 
 ## Sistema Profissional de Análise Documental com Coerência Textual & Recuperação Aumentada por Grafos
 
-[![Status](https://img.shields.io/badge/Status-Produção_v2.5_Elite-success?style=for-the-badge)](https://github.com/MarceloClaro/GRAPHRAG---SANDECO-AULA-5-CAP-OFFLINE)
+[![Status](https://img.shields.io/badge/Status-Produção_v2.5.3-success?style=for-the-badge)](https://github.com/MarceloClaro/GRAPHRAG---SANDECO-AULA-5-CAP-OFFLINE)
 [![Quality Standard](https://img.shields.io/badge/Padrão_Qualis-A1_ISO_9001-red?style=for-the-badge)](https://capes.gov.br)
 [![Coherence System](https://img.shields.io/badge/Coesão_e_Coerência-5_Etapas-orange?style=for-the-badge)](docs/COHERENCE_TRACKING.md)
 
