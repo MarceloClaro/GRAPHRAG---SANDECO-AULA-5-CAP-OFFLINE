@@ -291,7 +291,9 @@ function generateSimpleEmbedding(text: string): number[] {
     embedding.push(Math.sin(seed) * Math.cos(seed + 1) * 2 - 1);
   }
 
-  return embedding;
+  // Normaliza para cosine similarity
+  const norm = Math.sqrt(embedding.reduce((sum, v) => sum + v * v, 0) || 1);
+  return norm > 0 ? embedding.map(v => v / norm) : embedding;
 }
 
 /**

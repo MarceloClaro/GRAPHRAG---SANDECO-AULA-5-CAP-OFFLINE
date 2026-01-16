@@ -97,33 +97,37 @@ export const analyzeChunkWithGemini = async (chunk: DocumentChunk): Promise<Docu
   });
   
   try {
-    const prompt = `
-      Você é um especialista em processamento de documentos legais e acadêmicos (Data Cleaning & NLP).
-      
-      Sua tarefa é processar o seguinte fragmento de texto extraído de um PDF:
-      "${chunk.content}"
-      
-      Realize as seguintes operações:
-      1. **Limpeza**: Remova quebras de linha desnecessárias, hifens de fim de linha, números de página soltos e caracteres estranhos. O texto deve ficar fluido e legível.
-      2. **Classificação Hierárquica**: Identifique o tipo do fragmento. (Ex: ARTIGO, INCISO, PARAGRAFO, CAPITULO, DEFINICAO, CONCEITO, EMENTA, BIBLIOGRAFIA).
-      3. **Rotulagem**: Crie um rótulo curto e identificável (Ex: "Art. 5º", "Definição de RAG", "Conclusão").
-      4. **Extração de Entidades**: Liste as 3 a 5 principais palavras-chave ou entidades técnicas presentes neste fragmento para criação de um grafo de conhecimento.
-      
-      Retorne APENAS o JSON.
-    `;
+    const prompt = `Você é um especialista em documentos legais/acadêmicos.
+
+Instruções:
+- Idioma: português.
+- Saída: JSON válido (campos: cleaned_text, entity_type, entity_label, keywords).
+- Se não souber, devolva "N/A" no campo correspondente.
+- Formato estruturado (bullets reduzem alucinação):
+  1) cleaned_text: texto limpo (sem quebras, hifens)
+  2) entity_type: ARTIGO | INCISO | PARAGRAFO | CAPITULO | DEFINICAO | CONCEITO | EMENTA | OUTRO
+  3) entity_label: rótulo curto (ex: "Art. 5º")
+  4) keywords: array com 3-5 palavras-chave
+
+Texto de entrada:
+"${chunk.content}"
+
+Retorne APENAS o JSON.`;
 
     // Wrap API call with retry logic
     const response = await retryOperation(async () => {
       const ai = getAIClient();
       return await ai.models.generateContent({
         model: modelName,
-        prompt: prompt,
+        contents: prompt,
         generationConfig: {
-          temperature: 0.3,
+          temperature: 0.25,
+          topP: 0.9,
+          topK: 40,
           responseMimeType: 'application/json'
         }
       });
-    }, 'GEMINI_API_CALL');
+    }, 'GEMINI_API_CALL', 3, 2000);
 
     const resultText = response.text || '{}';
     const result: GeminiChunkResponse = JSON.parse(resultText);
@@ -221,14 +225,16 @@ ${chunk.content}
                     model: embeddingModelName,
                     contents: richContent, 
                 });
-            });
+            }, 'GEMINI_EMBEDDING', 3, 2000);
             
-            // Return full vector
-            const vector = result.embedding?.values || [];
+            // Normaliza para cosine similarity
+            const vector = result.embeddings?.[0]?.values || result.embedding?.values || [];
+            const norm = Math.sqrt(vector.reduce((sum: number, v: number) => sum + v * v, 0) || 1);
+            const normalized = norm > 0 ? vector.map((v: number) => v / norm) : vector;
             
             return {
                 id: chunk.id,
-                vector: vector,
+                vector: normalized,
                 contentSummary: chunk.content.substring(0, 50) + '...',
                 fullContent: chunk.content,
                 dueDate: chunk.dueDate,
